@@ -13,6 +13,7 @@ type CompressReader struct {
 }
 
 func NewCompressReader(r io.Reader) CompressReader {
+	log.Print("creating a new Compressor!")
 	retval := CompressReader{
 		underlying: r,
 	}
@@ -25,6 +26,7 @@ func NewCompressReader(r io.Reader) CompressReader {
 			log.Printf("trying to copy")
 			n, err := io.Copy(retval.compressor, retval.underlying)
 			log.Printf("copied %d bytes", n)
+			// this is wrong ... Copy does not return EOF
 			if err == io.EOF || n == 0 {
 				break
 			}
