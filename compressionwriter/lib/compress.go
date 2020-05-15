@@ -13,7 +13,7 @@ type CompressReader struct {
 }
 
 func NewCompressReader(r io.Reader) CompressReader {
-	log.Print("creating a new Compressor!")
+	log.Print("creating a loopless Compressor!")
 	retval := CompressReader{
 		underlying: r,
 	}
@@ -22,15 +22,8 @@ func NewCompressReader(r io.Reader) CompressReader {
 	retval.exposed = pr
 	go func() {
 		log.Print("launching copy")
-		for {
-			log.Printf("trying to copy")
-			n, err := io.Copy(retval.compressor, retval.underlying)
-			log.Printf("copied %d bytes", n)
-			// this is wrong ... Copy does not return EOF
-			if err == io.EOF || n == 0 {
-				break
-			}
-		}
+		n, err := io.Copy(retval.compressor, retval.underlying)
+		log.Printf("copied %d bytes (err = %v)", n, err)
 		log.Printf("closing: gzip.Writer.Close()")
 		retval.compressor.Close()
 		pw.Close()
@@ -39,5 +32,7 @@ func NewCompressReader(r io.Reader) CompressReader {
 }
 
 func (c *CompressReader) Read(b []byte) (int, error) {
-	return c.exposed.Read(b)
+	n, err := c.exposed.Read(b)
+	log.Printf("Read with %d bytes and error: %v", n, err)
+	return n, err
 }
